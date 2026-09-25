@@ -18,11 +18,10 @@ export default function SensorTest() {
   // Fetch telemetry from your local Express backend
   const fetchLiveData = async () => {
     try {
-      // Replace with your Express IP/port if running on another machine (e.g., http://10.80.81.33:3000/api/sensor-data)
+      // Connect to the Express server on port 3000
       const response = await fetch('/api/sensor-data'); 
       if (response.ok) {
         const json = await response.json();
-        // Fallback check to ensure payload structure exists
         if (json && json.readings) {
           setData(json);
           setIsOnline(true);
