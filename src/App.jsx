@@ -15,7 +15,7 @@ function statusForDistance(cm) {
 
 export default function SensorTest() {
   const [data, setData] = useState({
-    device_id: "river_node_uno_test",
+    device_id: "SURGE_0012",
     readings: [
       { sensor_id: 1, distance_cm: 0 },
       { sensor_id: 2, distance_cm: 0 },
