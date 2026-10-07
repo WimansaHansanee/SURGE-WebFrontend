@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SensorAreaChart from './components/SensorAreaChart';
+import MapComponent from './components/MainView';
 
 // Point this at wherever your Express server actually runs.
 const API_BASE = 'http://localhost:3000';
@@ -108,6 +109,11 @@ export default function SensorTest() {
           to { transform: scaleY(1); }
         }
       `}</style>
+
+      <div>
+        <h1>My React Map App</h1>
+        <MapComponent />
+      </div>
 
       <div style={styles.container}>
         <header style={styles.header}>
