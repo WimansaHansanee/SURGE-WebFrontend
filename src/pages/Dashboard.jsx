@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import SensorAreaChart from './components/SensorAreaChart';
+import SensorAreaChart from '../components/SensorAreaChart';
 
 
 // Point this at wherever your Express server actually runs.
@@ -109,11 +109,6 @@ export default function Dashboard() {
           to { transform: scaleY(1); }
         }
       `}</style>
-
-      <div>
-        <h1>My React Map App</h1>
-        <MapComponent />
-      </div>
 
       <div style={styles.container}>
         <header style={styles.header}>
