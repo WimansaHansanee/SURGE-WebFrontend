@@ -8,16 +8,16 @@ import './map.css';
 // Coordinates are approximate (town/bridge level), so adjust them to your real sensor sites.
 // status: 'ok' (green) | 'alert' (red). Later, derive this from live data.
 export const RIVER_NODES = [
-  { id: 'SURGE_001', label: 'N_01',  river: 'Nilwala Ganga',  place: 'Matara',       lat: 5.9549, lng: 80.5550, status: 'ok' },
-  { id: 'SURGE_002', label: 'K_02',  river: 'Kelani Ganga',   place: 'Hanwella',     lat: 6.9094, lng: 80.0836, status: 'alert' },
-  { id: 'SURGE_003', label: 'K_03',  river: 'Kelani Ganga',   place: 'Kitulgala',    lat: 6.9890, lng: 80.4170, status: 'ok' },
-  { id: 'SURGE_004', label: 'KA_01', river: 'Kalu Ganga',     place: 'Ratnapura',    lat: 6.6828, lng: 80.3992, status: 'alert' },
-  { id: 'SURGE_005', label: 'KA_02', river: 'Kalu Ganga',     place: 'Kalutara',     lat: 6.5854, lng: 79.9607, status: 'ok' },
-  { id: 'SURGE_006', label: 'G_01',  river: 'Gin Ganga',      place: 'Baddegama',    lat: 6.1761, lng: 80.1964, status: 'ok' },
-  { id: 'SURGE_007', label: 'K_01',  river: 'Kelani Ganga',   place: 'Kaduwela',     lat: 6.9366, lng: 79.9856, status: 'ok' },
-  { id: 'SURGE_008', label: 'M_01',  river: 'Mahaweli Ganga', place: 'Peradeniya',   lat: 7.2650, lng: 80.5950, status: 'ok' },
-  { id: 'SURGE_009', label: 'M_02',  river: 'Mahaweli Ganga', place: 'Manampitiya',  lat: 7.9000, lng: 81.0000, status: 'ok' },
-  { id: 'SURGE_010', label: 'W_01',  river: 'Walawe Ganga',   place: 'Embilipitiya', lat: 6.3333, lng: 80.8500, status: 'ok' },
+  { id: 'SURGE-001', label: 'N_01',  river: 'Nilwala Ganga',  place: 'Matara',       lat: 5.9549, lng: 80.5550, status: 'ok' },
+  { id: 'SURGE-002', label: 'K_02',  river: 'Kelani Ganga',   place: 'Hanwella',     lat: 6.9094, lng: 80.0836, status: 'alert' },
+  { id: 'SURGE-003', label: 'K_03',  river: 'Kelani Ganga',   place: 'Kitulgala',    lat: 6.9890, lng: 80.4170, status: 'ok' },
+  { id: 'SURGE-004', label: 'KA_01', river: 'Kalu Ganga',     place: 'Ratnapura',    lat: 6.6828, lng: 80.3992, status: 'alert' },
+  { id: 'SURGE-005', label: 'KA_02', river: 'Kalu Ganga',     place: 'Kalutara',     lat: 6.5854, lng: 79.9607, status: 'ok' },
+  { id: 'SURGE-006', label: 'G_01',  river: 'Gin Ganga',      place: 'Baddegama',    lat: 6.1761, lng: 80.1964, status: 'ok' },
+  { id: 'SURGE-007', label: 'K_01',  river: 'Kelani Ganga',   place: 'Kaduwela',     lat: 6.9366, lng: 79.9856, status: 'ok' },
+  { id: 'SURGE-008', label: 'M_01',  river: 'Mahaweli Ganga', place: 'Peradeniya',   lat: 7.2650, lng: 80.5950, status: 'ok' },
+  { id: 'SURGE-009', label: 'M_02',  river: 'Mahaweli Ganga', place: 'Manampitiya',  lat: 7.9000, lng: 81.0000, status: 'ok' },
+  { id: 'SURGE-010', label: 'W_01',  river: 'Walawe Ganga',   place: 'Embilipitiya', lat: 6.3333, lng: 80.8500, status: 'ok' },
 ];
 
 const makeIcon = (status, selected) =>
