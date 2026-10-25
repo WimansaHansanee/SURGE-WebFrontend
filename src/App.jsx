@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import SensorAreaChart from './components/SensorAreaChart';
-import MapComponent from './components/MainView';
+import MapComponent, { RIVER_NODES } from './components/MainView';
 
 // Point this at wherever your Express server actually runs.
 const API_BASE = 'http://localhost:3000';
