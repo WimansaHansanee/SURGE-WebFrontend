@@ -8,13 +8,13 @@ import './map.css';
 // Coordinates are approximate (town/bridge level), so adjust them to your real sensor sites.
 // status: 'ok' (green) | 'alert' (red). Later, derive this from live data.
 export const RIVER_NODES = [
-  { id: 'SURGE_001', label: 'W_01', river: 'Weras Ganga', place: 'Moratuwa', lat: 6.7954, lng: 79.9047, status: 'ok' },
-  { id: 'SURGE_002', label: 'K_02', river: 'Kelani Ganga', place: 'Hanwella', lat: 6.9099, lng: 80.0835, status: 'alert' },
-  { id: 'SURGE_003', label: 'KA_01', river: 'Kalu Ganga', place: 'Ratnapura', lat: 6.6791, lng: 80.3974, status: 'alert' },
-  { id: 'SURGE_004', label: 'N_01', river: 'Nilwala Ganga', place: 'Panadugama', lat: 6.1005, lng: 80.4788, status: 'ok' },
-  { id: 'SURGE_005', label: 'G_01', river: 'Gin Ganga', place: 'Baddegama', lat: 6.1861, lng: 80.1924, status: 'ok' },
-  { id: 'SURGE_006', label: 'M_01', river: 'Mahaweli Ganga', place: 'Peradeniya', lat: 7.2722, lng: 80.6044, status: 'ok' },
-  { id: 'SURGE_007', label: 'MO_01', river: 'Maha Oya', place: 'Badalgama', lat: 7.3017, lng: 79.9836, status: 'ok' },
+  { id: 'SURGE-001', label: 'W_01', river: 'Weras Ganga', place: 'Moratuwa', lat: 6.7954, lng: 79.9047, status: 'ok' },
+  { id: 'SURGE-002', label: 'K_02', river: 'Kelani Ganga', place: 'Hanwella', lat: 6.9099, lng: 80.0835, status: 'alert' },
+  { id: 'SURGE-003', label: 'KA_01', river: 'Kalu Ganga', place: 'Ratnapura', lat: 6.6791, lng: 80.3974, status: 'alert' },
+  { id: 'SURGE-004', label: 'N_01', river: 'Nilwala Ganga', place: 'Panadugama', lat: 6.1005, lng: 80.4788, status: 'ok' },
+  { id: 'SURGE-005', label: 'G_01', river: 'Gin Ganga', place: 'Baddegama', lat: 6.1861, lng: 80.1924, status: 'ok' },
+  { id: 'SURGE-006', label: 'M_01', river: 'Mahaweli Ganga', place: 'Peradeniya', lat: 7.2722, lng: 80.6044, status: 'ok' },
+  { id: 'SURGE-007', label: 'MO_01', river: 'Maha Oya', place: 'Badalgama', lat: 7.3017, lng: 79.9836, status: 'ok' },
 ];
 
 const makeIcon = (status, selected) =>
