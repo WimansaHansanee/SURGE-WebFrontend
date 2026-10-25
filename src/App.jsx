@@ -128,12 +128,14 @@ export default function SensorTest() {
         }
       `}</style>
 
-      <div>
-        <h1>My React Map App</h1>
-        <MapComponent />
-      </div>
+      <MapComponent
+        selected={selected}
+        onSelect={handleSelect}
+        onNavClick={scrollToDashboard}
+      />
 
-      <div style={styles.container}>
+      <div ref={dashRef} id="dashboard" style={styles.dashboard}>
+      <div style={styles.container}></div>
         <header style={styles.header}>
           <div>
             <div style={styles.eyebrow}>River monitoring node</div>
@@ -227,6 +229,8 @@ export default function SensorTest() {
         )}
       </div>
     </div>
+
+    
   );
 }
 
