@@ -27,7 +27,7 @@ export default function MainPage() {
         }
 
         /* Leaflet Popup Dark Mode Overrides */
-        .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #0c1f24 !important; border: 1px solid #1e3a40; box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #425256 !important; color: #ffffff; border: 1px solid #1e3a40; box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
         .leaflet-popup-content { margin: 12px 14px; }
         .popup-content-inner { display: flex; flex-direction: column; gap: 8px; font-family: 'Space Grotesk', sans-serif; }
         .popup-title { color: #eef7f5; font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono', monospace; letter-spacing: -0.5px; }

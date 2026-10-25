@@ -135,6 +135,12 @@
   filter: brightness(115%) saturate(70%) contrast(85%);
 }
 
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
 /* Base style for the glowing wrapper */
 .custom-marker-wrapper {
   position: relative;
