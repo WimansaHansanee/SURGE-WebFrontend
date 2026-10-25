@@ -42,7 +42,7 @@ export default function SensorTest() {
 
   const fetchLiveData = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/sensor-data`);
+      const response = await fetch(`${API_BASE}/api/sensor-data?device=${selected.id}`);
       if (response.ok) {
         const json = await response.json();
         if (json && json.readings) {
@@ -63,7 +63,7 @@ export default function SensorTest() {
 
   const fetchHistory = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/history`);
+      const response = await fetch(`${API_BASE}/api/history?device=${selected.id}`);
       if (response.ok) {
         const rows = await response.json();
         setHistory(rows);
@@ -74,6 +74,10 @@ export default function SensorTest() {
   };
 
   useEffect(() => {
+    setIsOnline(false);
+    setLastUpdated('Not updated yet');
+    setHistory([]);
+
     fetchLiveData();
     fetchHistory();
     const interval = setInterval(() => {
@@ -81,7 +85,7 @@ export default function SensorTest() {
       fetchHistory();
     }, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [selected.id]);   // <-- was []
 
   const avgDistance =
     data.readings.reduce((sum, r) => sum + r.distance_cm, 0) / (data.readings.length || 1);
