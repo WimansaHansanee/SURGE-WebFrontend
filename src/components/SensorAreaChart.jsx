@@ -36,7 +36,7 @@ export default function SensorAreaChart({ data, sensorHeight = 200 }) {
         </button>
       </div>
       
-      <ChartContainer config={chartConfig} className="h-[300px] w-full">
+      <ChartContainer config={chartConfig} className="h-75 w-full">
         <AreaChart data={processedData} margin={{ left: 12, right: 12 }}>
           <defs>
             {Object.keys(chartConfig).map((key) => (
