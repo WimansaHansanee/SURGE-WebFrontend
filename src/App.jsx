@@ -6,7 +6,7 @@ import MapComponent from './components/MainView';
 const API_BASE = 'http://localhost:3000';
 
 // Clearance thresholds (cm). Tune these to your actual riverbank geometry.
-const THRESHOLDS = { danger: 100, watch: 150 };
+const THRESHOLDS = { danger: 15, watch: 25 };
 
 function statusForDistance(cm) {
   if (cm <= THRESHOLDS.danger) return { key: 'danger', label: 'Low clearance', color: '#f87171' };
@@ -16,7 +16,7 @@ function statusForDistance(cm) {
 
 export default function SensorTest() {
   const [data, setData] = useState({
-    device_id: "SURGE_0012",
+    device_id: "SURGE_001",
     readings: [
       { sensor_id: 1, distance_cm: 0 },
       { sensor_id: 2, distance_cm: 0 },
