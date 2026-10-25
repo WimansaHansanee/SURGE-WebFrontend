@@ -12,7 +12,7 @@ const MapComponent = () => {
     // MapContainer replaces the traditional <div>. You MUST set a height here or in a CSS class.
     <MapContainer 
       center={position} 
-      zoom={13} 
+      zoom={7.8} 
       style={{ height: '500px', width: '100%' }}
     >
       {/* The TileLayer provides the actual map images (OpenStreetMap here) */}
