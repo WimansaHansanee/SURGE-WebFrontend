@@ -6,7 +6,7 @@ import 'leaflet/dist/leaflet.css';
 
 const MapComponent = () => {
   // Center coordinates (Latitude, Longitude)
-  const position = [51.505, -0.09]; 
+  const position = [6.79535252431408, 79.90471156096326]; 
 
   return (
     // MapContainer replaces the traditional <div>. You MUST set a height here or in a CSS class.
@@ -24,7 +24,7 @@ const MapComponent = () => {
       {/* Add a marker with a popup */}
       <Marker position={position}>
         <Popup>
-          Hello! I am a React Leaflet popup.
+          Weras Ganga
         </Popup>
       </Marker>
     </MapContainer>
