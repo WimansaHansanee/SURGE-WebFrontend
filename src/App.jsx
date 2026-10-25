@@ -14,17 +14,13 @@ function statusForDistance(cm) {
   return { key: 'safe', label: 'Clear', color: '#2dd4bf' };
 }
 
-export default function SensorTest() {
-  const [data, setData] = useState({
-    device_id: "SURGE_001",
-    readings: [
-      { sensor_id: 1, distance_cm: 0 },
-      { sensor_id: 2, distance_cm: 0 },
-      { sensor_id: 3, distance_cm: 0 },
-      { sensor_id: 4, distance_cm: 0 }
-    ]
-  });
+const emptyData = (deviceId) => ({
+  device_id: deviceId,
+  readings: [1, 2, 3, 4].map((id) => ({ sensor_id: id, distance_cm: 0 })),
+});
 
+export default function SensorTest() {
+  const [data, setData] = useState(emptyData('SURGE_001'));
   const [history, setHistory] = useState([]); // last 20 rows for the chart
   const [lastUpdated, setLastUpdated] = useState('Not updated yet');
   const [isOnline, setIsOnline] = useState(false);
@@ -40,64 +36,61 @@ export default function SensorTest() {
     setTimeout(scrollToDashboard, 1300); // wait for the fly animation
   };
 
-  const fetchLiveData = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/api/sensor-data?device=${selected.id}`);
-      if (response.ok) {
-        const json = await response.json();
-        if (json && json.readings) {
-          setData(json);
-          setIsOnline(true);
-          setLastUpdated(new Date().toLocaleTimeString());
+  useEffect(() => {
+    const fetchLiveData = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/sensor-data?device=${selected.id}`);
+        if (response.ok) {
+          const json = await response.json();
+          if (json && json.readings) {
+            setData(json);
+            setIsOnline(true);
+            setLastUpdated(new Date().toLocaleTimeString());
+          } else {
+            setIsOnline(false);
+          }
         } else {
           setIsOnline(false);
         }
-      } else {
+      } catch (err) {
+        console.error('Backend connection error:', err);
         setIsOnline(false);
       }
-    } catch (err) {
-      console.error("Backend connection error:", err);
-      setIsOnline(false);
-    }
-  };
+    };
 
-  const fetchHistory = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/api/history?device=${selected.id}`);
-      if (response.ok) {
-        const rows = await response.json();
-        setHistory(rows);
+    const fetchHistory = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/history?device=${selected.id}`);
+        if (response.ok) {
+          const rows = await response.json();
+          setHistory(rows);
+        }
+      } catch (err) {
+        console.error('History fetch error:', err);
       }
-    } catch (err) {
-      console.error("History fetch error:", err);
-    }
-  };
+    };
 
-  useEffect(() => {
-  setIsOnline(false);
-  setLastUpdated('Not updated yet');
-  setHistory([]);
-  setData({
-    device_id: selected.id,
-    readings: [1, 2, 3, 4].map((id) => ({ sensor_id: id, distance_cm: 0 })),
-  });
+    // Reset the dashboard whenever a different node is selected
+    setIsOnline(false);
+    setLastUpdated('Not updated yet');
+    setHistory([]);
+    setData(emptyData(selected.id));
 
-  fetchLiveData();
-  fetchHistory();
-  const interval = setInterval(() => {
     fetchLiveData();
     fetchHistory();
-  }, 3000);
-  return () => clearInterval(interval);
-}, [selected.id]);
+    const interval = setInterval(() => {
+      fetchLiveData();
+      fetchHistory();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [selected.id]);
 
   const avgDistance =
     data.readings.reduce((sum, r) => sum + r.distance_cm, 0) / (data.readings.length || 1);
   const avgStatus = statusForDistance(avgDistance);
 
   // Simple trend: compare the average of the first reading in the window
-  // to the average of the most recent one, mirroring the shadcn demo's
-  // "Trending up by X% this month" line.
+  // to the average of the most recent one.
   let trendLabel = null;
   let trendUp = false;
   if (history.length >= 2) {
@@ -135,102 +128,118 @@ export default function SensorTest() {
       />
 
       <div ref={dashRef} id="dashboard" style={styles.dashboard}>
-      <div style={styles.container}></div>
-        <header style={styles.header}>
-          <div>
-            <div style={styles.eyebrow}>River monitoring node</div>
-            <h1 style={styles.title}>{data.device_id}</h1>
-          </div>
-          <div style={{
-            ...styles.statusPill,
-            borderColor: isOnline ? 'rgba(45, 212, 191, 0.4)' : 'rgba(248, 113, 113, 0.4)',
-            background: isOnline ? 'rgba(45, 212, 191, 0.08)' : 'rgba(248, 113, 113, 0.08)',
-          }}>
-            <span style={{
-              ...styles.statusDot,
-              background: isOnline ? '#2dd4bf' : '#f87171',
-              animation: isOnline ? 'pulse-dot 1.8s ease-in-out infinite' : 'none',
-            }} />
-            <span style={{ color: isOnline ? '#5eead4' : '#fca5a5' }}>
-              {isOnline ? 'Live' : 'Disconnected'}
+        <div style={styles.container}>
+          <header style={styles.header}>
+            <div>
+              <div style={styles.eyebrow}>
+                {selected.river} · {selected.place}
+              </div>
+              <h1 style={styles.title}>{selected.id}</h1>
+            </div>
+            <div
+              style={{
+                ...styles.statusPill,
+                borderColor: isOnline ? 'rgba(45, 212, 191, 0.4)' : 'rgba(248, 113, 113, 0.4)',
+                background: isOnline ? 'rgba(45, 212, 191, 0.08)' : 'rgba(248, 113, 113, 0.08)',
+              }}
+            >
+              <span
+                style={{
+                  ...styles.statusDot,
+                  background: isOnline ? '#2dd4bf' : '#f87171',
+                  animation: isOnline ? 'pulse-dot 1.8s ease-in-out infinite' : 'none',
+                }}
+              />
+              <span style={{ color: isOnline ? '#5eead4' : '#fca5a5' }}>
+                {isOnline ? 'Live' : 'Disconnected'}
+              </span>
+            </div>
+          </header>
+
+          <div style={styles.metaRow}>
+            <span>
+              Last reading <strong style={styles.metaValue}>{lastUpdated}</strong>
+            </span>
+            <span style={styles.metaDivider} />
+            <span>
+              Average clearance{' '}
+              <strong style={{ ...styles.metaValue, color: avgStatus.color }}>
+                {avgDistance.toFixed(1)} cm
+              </strong>
             </span>
           </div>
-        </header>
 
-        <div style={styles.metaRow}>
-          <span>Last reading <strong style={styles.metaValue}>{lastUpdated}</strong></span>
-          <span style={styles.metaDivider} />
-          <span>
-            Average clearance{' '}
-            <strong style={{ ...styles.metaValue, color: avgStatus.color }}>
-              {avgDistance.toFixed(1)} cm
-            </strong>
-          </span>
-        </div>
-
-        <div style={styles.grid}>
-          {data.readings.map((sensor) => {
-            const status = statusForDistance(sensor.distance_cm);
-            const fillPct = Math.min(100, (sensor.distance_cm / maxDistance) * 100);
-            return (
-              <div key={sensor.sensor_id} style={styles.card}>
-                <div style={styles.cardTop}>
-                  <span style={styles.cardLabel}>Node {String(sensor.sensor_id).padStart(2, '0')}</span>
-                  <span style={{ ...styles.statusTag, color: status.color, borderColor: status.color + '55' }}>
-                    {status.label}
-                  </span>
-                </div>
-
-                <div style={styles.gaugeRow}>
-                  <div style={styles.gaugeTrack}>
-                    <div
+          <div style={styles.grid}>
+            {data.readings.map((sensor) => {
+              const status = statusForDistance(sensor.distance_cm);
+              const fillPct = Math.min(100, (sensor.distance_cm / maxDistance) * 100);
+              return (
+                <div key={sensor.sensor_id} style={styles.card}>
+                  <div style={styles.cardTop}>
+                    <span style={styles.cardLabel}>
+                      Node {String(sensor.sensor_id).padStart(2, '0')}
+                    </span>
+                    <span
                       style={{
-                        ...styles.gaugeFill,
-                        height: `${fillPct}%`,
-                        background: `linear-gradient(180deg, ${status.color}, ${status.color}33)`,
+                        ...styles.statusTag,
+                        color: status.color,
+                        borderColor: status.color + '55',
                       }}
-                    />
+                    >
+                      {status.label}
+                    </span>
                   </div>
-                  <div style={styles.readingBlock}>
-                    <div style={styles.readingValue}>{sensor.distance_cm.toFixed(1)}</div>
-                    <div style={styles.readingUnit}>cm clearance</div>
+
+                  <div style={styles.gaugeRow}>
+                    <div style={styles.gaugeTrack}>
+                      <div
+                        style={{
+                          ...styles.gaugeFill,
+                          height: `${fillPct}%`,
+                          background: `linear-gradient(180deg, ${status.color}, ${status.color}33)`,
+                        }}
+                      />
+                    </div>
+                    <div style={styles.readingBlock}>
+                      <div style={styles.readingValue}>{sensor.distance_cm.toFixed(1)}</div>
+                      <div style={styles.readingUnit}>cm clearance</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div style={styles.chartSection}>
-          <div style={styles.chartHeader}>
-            <div>
-              <h3 style={styles.chartTitle}>Distance readings</h3>
-              <p style={styles.chartSubtitle}>Last 20 samples · all 4 nodes</p>
-            </div>
-            {trendLabel && (
-              <div style={{ ...styles.trendTag, color: trendUp ? '#fbbf24' : '#5eead4' }}>
-                {trendUp ? '↑' : '↓'} {trendLabel}
-              </div>
-            )}
+              );
+            })}
           </div>
-          <SensorAreaChart data={history} />
-        </div>
 
-        <button
-          style={styles.rawToggle}
-          onClick={() => setShowRaw((v) => !v)}
-        >
-          {showRaw ? 'Hide raw payload' : 'Show raw payload'}
-        </button>
-        {showRaw && (
-          <pre style={styles.jsonPreview}>
-            {JSON.stringify(data, null, 2)}
-          </pre>
-        )}
+          <div style={styles.chartSection}>
+            <div style={styles.chartHeader}>
+              <div>
+                <h3 style={styles.chartTitle}>Distance readings</h3>
+                <p style={styles.chartSubtitle}>Last 20 samples · all 4 nodes</p>
+              </div>
+              {trendLabel && (
+                <div style={{ ...styles.trendTag, color: trendUp ? '#fbbf24' : '#5eead4' }}>
+                  {trendUp ? '↑' : '↓'} {trendLabel}
+                </div>
+              )}
+            </div>
+            <SensorAreaChart data={history} />
+          </div>
+
+          <button style={styles.rawToggle} onClick={() => setShowRaw((v) => !v)}>
+            {showRaw ? 'Hide raw payload' : 'Show raw payload'}
+          </button>
+
+          <button
+            style={{ ...styles.rawToggle, marginLeft: 10 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
+            ↑ Back to map
+          </button>
+
+          {showRaw && <pre style={styles.jsonPreview}>{JSON.stringify(data, null, 2)}</pre>}
+        </div>
       </div>
     </div>
-
-    
   );
 }
 
@@ -238,8 +247,11 @@ const styles = {
   page: {
     minHeight: '100vh',
     background: 'radial-gradient(ellipse at top, #0f2027 0%, #0a1620 55%, #060d13 100%)',
-    padding: '40px 20px',
     fontFamily: "'Space Grotesk', system-ui, sans-serif",
+  },
+  dashboard: {
+    minHeight: '100vh',
+    padding: '60px 20px 40px',
   },
   container: {
     maxWidth: '820px',
