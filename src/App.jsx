@@ -29,6 +29,16 @@ export default function SensorTest() {
   const [lastUpdated, setLastUpdated] = useState('Not updated yet');
   const [isOnline, setIsOnline] = useState(false);
   const [showRaw, setShowRaw] = useState(false);
+  const [selected, setSelected] = useState(RIVER_NODES[0]);
+  const dashRef = useRef(null);
+
+  const scrollToDashboard = () =>
+    dashRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const handleSelect = (node) => {
+    setSelected(node);
+    setTimeout(scrollToDashboard, 1300); // wait for the fly animation
+  };
 
   const fetchLiveData = async () => {
     try {
