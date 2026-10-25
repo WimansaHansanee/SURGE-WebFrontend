@@ -74,18 +74,22 @@ export default function SensorTest() {
   };
 
   useEffect(() => {
-    setIsOnline(false);
-    setLastUpdated('Not updated yet');
-    setHistory([]);
+  setIsOnline(false);
+  setLastUpdated('Not updated yet');
+  setHistory([]);
+  setData({
+    device_id: selected.id,
+    readings: [1, 2, 3, 4].map((id) => ({ sensor_id: id, distance_cm: 0 })),
+  });
 
+  fetchLiveData();
+  fetchHistory();
+  const interval = setInterval(() => {
     fetchLiveData();
     fetchHistory();
-    const interval = setInterval(() => {
-      fetchLiveData();
-      fetchHistory();
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [selected.id]);   // <-- was []
+  }, 3000);
+  return () => clearInterval(interval);
+}, [selected.id]);
 
   const avgDistance =
     data.readings.reduce((sum, r) => sum + r.distance_cm, 0) / (data.readings.length || 1);
