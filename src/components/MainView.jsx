@@ -39,6 +39,32 @@ function FlyToNode({ node }) {
   return null;
 }
 
+// Normal scroll -> scrolls the page.
+// Touchpad pinch / Ctrl + scroll -> zooms the map.
+function PinchZoomOnly() {
+  const map = useMap();
+
+  useEffect(() => {
+    const el = map.getContainer();
+
+    const onWheel = (e) => {
+      if (!e.ctrlKey) return; // plain scroll: do nothing, the page scrolls
+      e.preventDefault(); // stop the browser zooming the whole page
+      const delta = Math.max(-1, Math.min(1, -e.deltaY * 0.02));
+      map.setZoomAround(
+        map.mouseEventToContainerPoint(e),
+        map.getZoom() + delta,
+        { animate: false }
+      );
+    };
+
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [map]);
+
+  return null;
+}
+
 export default function MapComponent({ selected, onSelect, onNavClick }) {
   const alerts = RIVER_NODES.filter((n) => n.status === 'alert').length;
 
@@ -63,8 +89,14 @@ export default function MapComponent({ selected, onSelect, onNavClick }) {
           the map to inspect live sensor telemetry.
         </p>
         <div className="glass-stats">
-          <div><strong>{RIVER_NODES.length}</strong><span>Active Nodes</span></div>
-          <div><strong>{alerts ? `${alerts} Alert${alerts > 1 ? 's' : ''}` : 'Normal'}</strong><span>Water Levels</span></div>
+          <div>
+            <strong>{RIVER_NODES.length}</strong>
+            <span>Active Nodes</span>
+          </div>
+          <div>
+            <strong>{alerts ? `${alerts} Alert${alerts > 1 ? 's' : ''}` : 'Normal'}</strong>
+            <span>Water Levels</span>
+          </div>
         </div>
       </aside>
 
@@ -78,7 +110,8 @@ export default function MapComponent({ selected, onSelect, onNavClick }) {
         center={[7.5, 80.7]}
         zoom={8}
         zoomControl={false}
-        scrollWheelZoom
+        scrollWheelZoom={false}
+        zoomSnap={0}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -86,6 +119,7 @@ export default function MapComponent({ selected, onSelect, onNavClick }) {
         />
         <ZoomControl position="bottomright" />
         <FlyToNode node={selected} />
+        <PinchZoomOnly />
 
         {RIVER_NODES.map((node) => (
           <Marker
