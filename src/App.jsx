@@ -264,7 +264,7 @@ const styles = {
     marginBottom: '18px',
   },
   eyebrow: {
-    fontSize: '14px',
+    fontSize: '30px',
     letterSpacing: '0.04em',
     color: '#5b8a94',
     marginBottom: '6px',
