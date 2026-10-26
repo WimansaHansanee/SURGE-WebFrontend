@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import SensorAreaChart from './components/SensorAreaChart';
 import MapComponent, { RIVER_NODES } from './components/MainView';
 
+
 // Point this at wherever your Express server actually runs.
 const API_BASE = 'http://localhost:3000';
 
@@ -100,7 +101,7 @@ export default function SensorTest() {
     if (first > 0) {
       const pctChange = ((last - first) / first) * 100;
       trendUp = pctChange >= 0;
-      trendLabel = `${trendUp ? 'Rising' : 'Falling'} ${Math.abs(pctChange).toFixed(1)}% over this window`;
+      trendLabel = `${trendUp ? 'Rising' : 'Falling'} ${Math.abs(pctChange).toFixed(1)}%`;
     }
   }
 

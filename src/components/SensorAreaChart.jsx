@@ -13,6 +13,8 @@ const chartConfig = {
   s4: { label: "Sensor 4", color: "hsl(261, 72%, 61%)" },
 };
 
+
+
 export default function SensorAreaChart({ data, sensorHeight = 200 }) {
   const [showWaterLevel, setShowWaterLevel] = useState(true);
 
