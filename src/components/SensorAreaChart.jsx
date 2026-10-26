@@ -15,7 +15,7 @@ const chartConfig = {
 
 
 
-export default function SensorAreaChart({ data, sensorHeight = 200 , onSendValue}) {
+export default function SensorAreaChart({ data, sensorHeight = 200 }) {
   const [showWaterLevel, setShowWaterLevel] = useState(true);
 
   // Transform the data based on the selected view mode
@@ -32,10 +32,7 @@ export default function SensorAreaChart({ data, sensorHeight = 200 , onSendValue
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
         <button
-          onClick={() => {
-            setShowWaterLevel(!showWaterLevel);
-            onSendValue(showWaterLevel);
-          }}
+          onClick={() => setShowWaterLevel(!showWaterLevel)}
           className="text-xs font-medium px-3 py-1.5 rounded-md border border-[#274850] text-[#8fb4ba] hover:bg-[#08161a] transition-colors"
         >
           Viewing: {showWaterLevel ? "Actual Water Level" : "Clearance Distance"}

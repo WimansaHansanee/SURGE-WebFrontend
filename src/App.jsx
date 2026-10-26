@@ -37,13 +37,6 @@ export default function SensorTest() {
     setTimeout(scrollToDashboard, 1300); // wait for the fly animation
   };
 
-  const [receivedData, setReceivedData] = useState('No data yet');
-
-  // Callback function to receive data from child
-  const handleToggleData = (dataFromChild) => {
-    setReceivedData(dataFromChild);
-  };
-
   useEffect(() => {
     const fetchLiveData = async () => {
       try {
@@ -101,20 +94,31 @@ export default function SensorTest() {
   // to the average of the most recent one.
   let trendLabel = null;
   let trendUp = false;
-  if (history.length >= 2) {
+  if (history.length >= 4) {
+    // Helper: average node readings for a row
     const avgOf = (row) => (row.s1 + row.s2 + row.s3 + row.s4) / 4;
-    const first = avgOf(history[0]);
-    const last = avgOf(history[history.length - 1]);
-    if (first > 0) {
-      const pctChange = ((last - first) / first) * 100;
-      trendUp = pctChange >= 0;
-      if(receivedData){
-        trendLabel = `${trendUp ? 'Rising' : 'Falling'} ${Math.abs(pctChange).toFixed(1)}%`;
-      }
-      else{
-        trendLabel = 'Hi';
-      }
+
+    // Smooth out noise by averaging the first 2 and last 2 samples
+    const firstAvg = (avgOf(history[0]) + avgOf(history[1])) / 2;
+    const lastAvg = (avgOf(history[history.length - 1]) + avgOf(history[history.length - 2])) / 2;
+
+    // Assuming history stores RAW DISTANCE and you want WATER LEVEL trend:
+    // (Decrease in distance = Increase in water level)
+    const distanceDiff = lastAvg - firstAvg;
+    
+    // Set a deadband (e.g., 0.5 cm) to avoid jitter when water is stationary
+    const DEADBAND_CM = 0.5;
+
+    if (Math.abs(distanceDiff) > DEADBAND_CM) {
+      const isWaterRising = distanceDiff < 0; 
       
+      // Express change relative to baseline or tank capacity rather than raw distance
+      const pctChange = (Math.abs(distanceDiff) / firstAvg) * 100;
+
+      trendUp = isWaterRising;
+      trendLabel = `${trendUp ? 'Rising' : 'Falling'} ${pctChange.toFixed(1)}%`;
+    } else {
+      trendLabel = 'Stable';
     }
   }
 
@@ -236,7 +240,7 @@ export default function SensorTest() {
                 </div>
               )}
             </div>
-            <SensorAreaChart data={history} onSendValue={handleToggleData}/>
+            <SensorAreaChart data={history} />
           </div>
 
           <button style={styles.rawToggle} onClick={() => setShowRaw((v) => !v)}>
