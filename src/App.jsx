@@ -116,7 +116,7 @@ export default function SensorTest() {
       const pctChange = (Math.abs(distanceDiff) / firstAvg) * 100;
 
       trendUp = isWaterRising;
-      trendLabel = `${trendUp ? 'Rising' : 'Falling'} ${pctChange.toFixed(1)}%`;
+      trendLabel = `${trendUp ? 'Rising' : 'Falling'} ${pctChange.toFixed(1)}% over this window`;
     } else {
       trendLabel = 'Stable';
     }
