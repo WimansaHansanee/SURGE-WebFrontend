@@ -37,6 +37,13 @@ export default function SensorTest() {
     setTimeout(scrollToDashboard, 1300); // wait for the fly animation
   };
 
+  const [receivedData, setReceivedData] = useState('No data yet');
+
+  // Callback function to receive data from child
+  const handleToggleData = (dataFromChild) => {
+    setReceivedData(dataFromChild);
+  };
+
   useEffect(() => {
     const fetchLiveData = async () => {
       try {
@@ -101,7 +108,13 @@ export default function SensorTest() {
     if (first > 0) {
       const pctChange = ((last - first) / first) * 100;
       trendUp = pctChange >= 0;
-      trendLabel = `${trendUp ? 'Rising' : 'Falling'} ${Math.abs(pctChange).toFixed(1)}%`;
+      if(receivedData){
+        trendLabel = `${trendUp ? 'Rising' : 'Falling'} ${Math.abs(pctChange).toFixed(1)}%`;
+      }
+      else{
+        trendLabel = 'Hi';
+      }
+      
     }
   }
 
@@ -223,7 +236,7 @@ export default function SensorTest() {
                 </div>
               )}
             </div>
-            <SensorAreaChart data={history} />
+            <SensorAreaChart data={history} onSendValue={handleToggleData}/>
           </div>
 
           <button style={styles.rawToggle} onClick={() => setShowRaw((v) => !v)}>
