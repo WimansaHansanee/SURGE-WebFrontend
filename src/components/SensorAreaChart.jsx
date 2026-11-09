@@ -13,6 +13,8 @@ const chartConfig = {
   s4: { label: "Sensor 4", color: "hsl(261, 72%, 61%)" },
 };
 
+
+
 export default function SensorAreaChart({ data, sensorHeight = 200 }) {
   const [showWaterLevel, setShowWaterLevel] = useState(true);
 
@@ -24,6 +26,7 @@ export default function SensorAreaChart({ data, sensorHeight = 200 }) {
     s3: showWaterLevel ? sensorHeight - point.s3 : point.s3,
     s4: showWaterLevel ? sensorHeight - point.s4 : point.s4,
   }));
+
 
   return (
     <div className="flex flex-col gap-4">

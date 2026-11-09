@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import SensorAreaChart from './components/SensorAreaChart';
 import MapComponent, { RIVER_NODES } from './components/MainView';
 
+
 // Point this at wherever your Express server actually runs.
 const API_BASE = 'http://localhost:3000';
 
@@ -92,23 +93,34 @@ export default function SensorTest() {
   // Simple trend: compare the average of the first reading in the window
   // to the average of the most recent one.
   let trendLabel = null;
-let trendUp = false;
+  let trendUp = false;
+  if (history.length >= 4) {
+    // Helper: average node readings for a row
+    const avgOf = (row) => (row.s1 + row.s2 + row.s3 + row.s4) / 4;
 
-if (history.length >= 2) {
-  const avgOf = (row) => (row.s1 + row.s2 + row.s3 + row.s4) / 4;
-  
-  // Use average of first N points vs last N points to smooth noise (e.g., N = 3)
-  const windowSize = Math.min(3, Math.floor(history.length / 2));
-  
-  const startAvg = history.slice(0, windowSize).reduce((acc, r) => acc + avgOf(r), 0) / windowSize;
-  const endAvg = history.slice(-windowSize).reduce((acc, r) => acc + avgOf(r), 0) / windowSize;
+    // Smooth out noise by averaging the first 2 and last 2 samples
+    const firstAvg = (avgOf(history[0]) + avgOf(history[1])) / 2;
+    const lastAvg = (avgOf(history[history.length - 1]) + avgOf(history[history.length - 2])) / 2;
 
-  if (startAvg > 0) {
-    const pctChange = ((endAvg - startAvg) / startAvg) * 100;
-    trendUp = pctChange >= 0;
-    trendLabel = `${trendUp ? 'Rising' : 'Falling'} ${Math.abs(pctChange).toFixed(1)}% over this window`;
+    // Assuming history stores RAW DISTANCE and you want WATER LEVEL trend:
+    // (Decrease in distance = Increase in water level)
+    const distanceDiff = lastAvg - firstAvg;
+    
+    // Set a deadband (e.g., 0.5 cm) to avoid jitter when water is stationary
+    const DEADBAND_CM = 0.5;
+
+    if (Math.abs(distanceDiff) > DEADBAND_CM) {
+      const isWaterRising = distanceDiff < 0; 
+      
+      // Express change relative to baseline or tank capacity rather than raw distance
+      const pctChange = (Math.abs(distanceDiff) / firstAvg) * 100;
+
+      trendUp = isWaterRising;
+      trendLabel = `${trendUp ? 'Rising' : 'Falling'} ${pctChange.toFixed(1)}% over this window`;
+    } else {
+      trendLabel = 'Stable';
+    }
   }
-}
 
   const maxDistance = 200; // cm, used to scale the gauge bars — adjust to your sensor's mounted height
 
