@@ -6,7 +6,7 @@ import MapComponent, { RIVER_NODES } from './components/MainView';
 const API_BASE = 'http://localhost:3000';
 
 // Clearance thresholds (cm). Tune these to your actual riverbank geometry.
-const THRESHOLDS = { danger: 15, watch: 25 };
+const THRESHOLDS = { danger: 14, watch: 16 };
 
 function statusForDistance(cm) {
   if (cm <= THRESHOLDS.danger) return { key: 'danger', label: 'Low clearance', color: '#f87171' };
@@ -81,7 +81,7 @@ export default function SensorTest() {
     const interval = setInterval(() => {
       fetchLiveData();
       fetchHistory();
-    }, 3000);
+    }, 10);
     return () => clearInterval(interval);
   }, [selected.id]);
 
@@ -92,17 +92,23 @@ export default function SensorTest() {
   // Simple trend: compare the average of the first reading in the window
   // to the average of the most recent one.
   let trendLabel = null;
-  let trendUp = false;
-  if (history.length >= 2) {
-    const avgOf = (row) => (row.s1 + row.s2 + row.s3 + row.s4) / 4;
-    const first = avgOf(history[0]);
-    const last = avgOf(history[history.length - 1]);
-    if (first > 0) {
-      const pctChange = ((last - first) / first) * 100;
-      trendUp = pctChange >= 0;
-      trendLabel = `${trendUp ? 'Rising' : 'Falling'} ${Math.abs(pctChange).toFixed(1)}% over this window`;
-    }
+let trendUp = false;
+
+if (history.length >= 2) {
+  const avgOf = (row) => (row.s1 + row.s2 + row.s3 + row.s4) / 4;
+  
+  // Use average of first N points vs last N points to smooth noise (e.g., N = 3)
+  const windowSize = Math.min(3, Math.floor(history.length / 2));
+  
+  const startAvg = history.slice(0, windowSize).reduce((acc, r) => acc + avgOf(r), 0) / windowSize;
+  const endAvg = history.slice(-windowSize).reduce((acc, r) => acc + avgOf(r), 0) / windowSize;
+
+  if (startAvg > 0) {
+    const pctChange = ((endAvg - startAvg) / startAvg) * 100;
+    trendUp = pctChange >= 0;
+    trendLabel = `${trendUp ? 'Rising' : 'Falling'} ${Math.abs(pctChange).toFixed(1)}% over this window`;
   }
+}
 
   const maxDistance = 200; // cm, used to scale the gauge bars — adjust to your sensor's mounted height
 
