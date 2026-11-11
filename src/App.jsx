@@ -1,40 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import SensorAreaChart from './components/SensorAreaChart';
 import MapComponent, { RIVER_NODES } from './components/MainView';
+import SensorCard from './components/SensorCard';
+import { API_BASE, statusForDistance, emptyData } from './utils/helpers';
+import { styles } from './styles/dashboardStyles';
 
-
-// Point this at wherever your Express server actually runs.
-const API_BASE = 'http://localhost:3000';
-
-// Clearance thresholds (cm). Tune these to your actual riverbank geometry.
-const THRESHOLDS = { danger: 14, watch: 16 };
-
-function statusForDistance(cm) {
-  if (cm <= THRESHOLDS.danger) return { key: 'danger', label: 'Low clearance', color: '#f87171' };
-  if (cm <= THRESHOLDS.watch) return { key: 'watch', label: 'Watch', color: '#fbbf24' };
-  return { key: 'safe', label: 'Clear', color: '#2dd4bf' };
-}
-
-const emptyData = (deviceId) => ({
-  device_id: deviceId,
-  readings: [1, 2, 3, 4].map((id) => ({ sensor_id: id, distance_cm: 0 })),
-});
-
-export default function SensorTest() {
+export default function App() {
   const [data, setData] = useState(emptyData('SURGE_001'));
-  const [history, setHistory] = useState([]); // last 20 rows for the chart
+  const [history, setHistory] = useState([]); 
   const [lastUpdated, setLastUpdated] = useState('Not updated yet');
   const [isOnline, setIsOnline] = useState(false);
   const [showRaw, setShowRaw] = useState(false);
   const [selected, setSelected] = useState(RIVER_NODES[0]);
   const dashRef = useRef(null);
 
-  const scrollToDashboard = () =>
-    dashRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const scrollToDashboard = () => dashRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   const handleSelect = (node) => {
     setSelected(node);
-    setTimeout(scrollToDashboard, 1300); // wait for the fly animation
+    setTimeout(scrollToDashboard, 1300); 
   };
 
   useEffect(() => {
@@ -47,14 +31,9 @@ export default function SensorTest() {
             setData(json);
             setIsOnline(true);
             setLastUpdated(new Date().toLocaleTimeString());
-          } else {
-            setIsOnline(false);
-          }
-        } else {
-          setIsOnline(false);
-        }
+          } else setIsOnline(false);
+        } else setIsOnline(false);
       } catch (err) {
-        console.error('Backend connection error:', err);
         setIsOnline(false);
       }
     };
@@ -66,12 +45,9 @@ export default function SensorTest() {
           const rows = await response.json();
           setHistory(rows);
         }
-      } catch (err) {
-        console.error('History fetch error:', err);
-      }
+      } catch (err) {}
     };
 
-    // Reset the dashboard whenever a different node is selected
     setIsOnline(false);
     setLastUpdated('Not updated yet');
     setHistory([]);
@@ -79,95 +55,64 @@ export default function SensorTest() {
 
     fetchLiveData();
     fetchHistory();
+    
+
     const interval = setInterval(() => {
       fetchLiveData();
       fetchHistory();
-    }, 10);
+    }, 2000); 
+    
     return () => clearInterval(interval);
   }, [selected.id]);
 
-  const avgDistance =
-    data.readings.reduce((sum, r) => sum + r.distance_cm, 0) / (data.readings.length || 1);
+  const avgDistance = data.readings.reduce((sum, r) => sum + r.distance_cm, 0) / (data.readings.length || 1);
   const avgStatus = statusForDistance(avgDistance);
 
-  // Simple trend: compare the average of the first reading in the window
-  // to the average of the most recent one.
   let trendLabel = null;
   let trendUp = false;
-  if (history.length >= 4) {
-    // Helper: average node readings for a row
+
+  if (history.length >= 2) {
     const avgOf = (row) => (row.s1 + row.s2 + row.s3 + row.s4) / 4;
-
-    // Smooth out noise by averaging the first 2 and last 2 samples
-    const firstAvg = (avgOf(history[0]) + avgOf(history[1])) / 2;
-    const lastAvg = (avgOf(history[history.length - 1]) + avgOf(history[history.length - 2])) / 2;
-
-    // Assuming history stores RAW DISTANCE and you want WATER LEVEL trend:
-    // (Decrease in distance = Increase in water level)
-    const distanceDiff = lastAvg - firstAvg;
+    const windowSize = Math.min(3, Math.floor(history.length / 2));
     
-    // Set a deadband (e.g., 0.5 cm) to avoid jitter when water is stationary
-    const DEADBAND_CM = 0.5;
+    const startAvg = history.slice(0, windowSize).reduce((acc, r) => acc + avgOf(r), 0) / windowSize;
+    const endAvg = history.slice(-windowSize).reduce((acc, r) => acc + avgOf(r), 0) / windowSize;
 
-    if (Math.abs(distanceDiff) > DEADBAND_CM) {
-      const isWaterRising = distanceDiff < 0; 
-      
-      // Express change relative to baseline or tank capacity rather than raw distance
-      const pctChange = (Math.abs(distanceDiff) / firstAvg) * 100;
-
-      trendUp = isWaterRising;
-      trendLabel = `${trendUp ? 'Rising' : 'Falling'} ${pctChange.toFixed(1)}% over this window`;
-    } else {
-      trendLabel = 'Stable';
+    if (startAvg > 0) {
+      const pctChange = ((endAvg - startAvg) / startAvg) * 100;
+      trendUp = pctChange >= 0;
+      trendLabel = `${trendUp ? 'Rising' : 'Falling'} ${Math.abs(pctChange).toFixed(1)}% over this window`;
     }
   }
-
-  const maxDistance = 200; // cm, used to scale the gauge bars — adjust to your sensor's mounted height
 
   return (
     <div style={styles.page}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
         * { box-sizing: border-box; }
-        @keyframes pulse-dot {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.4; transform: scale(0.75); }
-        }
-        @keyframes rise {
-          from { transform: scaleY(0); }
-          to { transform: scaleY(1); }
-        }
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.75); } }
+        @keyframes rise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
       `}</style>
 
-      <MapComponent
-        selected={selected}
-        onSelect={handleSelect}
-        onNavClick={scrollToDashboard}
-      />
+      <MapComponent selected={selected} onSelect={handleSelect} onNavClick={scrollToDashboard} />
 
       <div ref={dashRef} id="dashboard" style={styles.dashboard}>
         <div style={styles.container}>
           <header style={styles.header}>
             <div>
-              <div style={styles.eyebrow}>
-                {selected.river} · {selected.place}
-              </div>
+              <div style={styles.eyebrow}>{selected.river} · {selected.place}</div>
               <h1 style={styles.title}>{selected.id}</h1>
             </div>
-            <div
-              style={{
-                ...styles.statusPill,
-                borderColor: isOnline ? 'rgba(45, 212, 191, 0.4)' : 'rgba(248, 113, 113, 0.4)',
-                background: isOnline ? 'rgba(45, 212, 191, 0.08)' : 'rgba(248, 113, 113, 0.08)',
-              }}
-            >
-              <span
-                style={{
-                  ...styles.statusDot,
-                  background: isOnline ? '#2dd4bf' : '#f87171',
-                  animation: isOnline ? 'pulse-dot 1.8s ease-in-out infinite' : 'none',
-                }}
-              />
+            <div style={{
+              ...styles.statusPill,
+              borderColor: isOnline ? 'rgba(45, 212, 191, 0.4)' : 'rgba(248, 113, 113, 0.4)',
+              background: isOnline ? 'rgba(45, 212, 191, 0.08)' : 'rgba(248, 113, 113, 0.08)'
+            }}>
+              <span style={{
+                ...styles.statusDot,
+                background: isOnline ? '#2dd4bf' : '#f87171',
+                animation: isOnline ? 'pulse-dot 1.8s ease-in-out infinite' : 'none'
+              }} />
               <span style={{ color: isOnline ? '#5eead4' : '#fca5a5' }}>
                 {isOnline ? 'Live' : 'Disconnected'}
               </span>
@@ -175,57 +120,17 @@ export default function SensorTest() {
           </header>
 
           <div style={styles.metaRow}>
-            <span>
-              Last reading <strong style={styles.metaValue}>{lastUpdated}</strong>
-            </span>
+            <span>Last reading <strong style={styles.metaValue}>{lastUpdated}</strong></span>
             <span style={styles.metaDivider} />
             <span>
-              Average clearance{' '}
-              <strong style={{ ...styles.metaValue, color: avgStatus.color }}>
-                {avgDistance.toFixed(1)} cm
-              </strong>
+              Average clearance <strong style={{ ...styles.metaValue, color: avgStatus.color }}>{avgDistance.toFixed(1)} cm</strong>
             </span>
           </div>
 
           <div style={styles.grid}>
-            {data.readings.map((sensor) => {
-              const status = statusForDistance(sensor.distance_cm);
-              const fillPct = Math.min(100, (sensor.distance_cm / maxDistance) * 100);
-              return (
-                <div key={sensor.sensor_id} style={styles.card}>
-                  <div style={styles.cardTop}>
-                    <span style={styles.cardLabel}>
-                      Node {String(sensor.sensor_id).padStart(2, '0')}
-                    </span>
-                    <span
-                      style={{
-                        ...styles.statusTag,
-                        color: status.color,
-                        borderColor: status.color + '55',
-                      }}
-                    >
-                      {status.label}
-                    </span>
-                  </div>
-
-                  <div style={styles.gaugeRow}>
-                    <div style={styles.gaugeTrack}>
-                      <div
-                        style={{
-                          ...styles.gaugeFill,
-                          height: `${fillPct}%`,
-                          background: `linear-gradient(180deg, ${status.color}, ${status.color}33)`,
-                        }}
-                      />
-                    </div>
-                    <div style={styles.readingBlock}>
-                      <div style={styles.readingValue}>{sensor.distance_cm.toFixed(1)}</div>
-                      <div style={styles.readingUnit}>cm clearance</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {data.readings.map((sensor) => (
+              <SensorCard key={sensor.sensor_id} sensor={sensor} maxDistance={200} />
+            ))}
           </div>
 
           <div style={styles.chartSection}>
@@ -247,10 +152,7 @@ export default function SensorTest() {
             {showRaw ? 'Hide raw payload' : 'Show raw payload'}
           </button>
 
-          <button
-            style={{ ...styles.rawToggle, marginLeft: 10 }}
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          >
+          <button style={{ ...styles.rawToggle, marginLeft: 10 }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
             ↑ Back to map
           </button>
 
@@ -260,191 +162,3 @@ export default function SensorTest() {
     </div>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: '100vh',
-    background: 'radial-gradient(ellipse at top, #0f2027 0%, #0a1620 55%, #060d13 100%)',
-    fontFamily: "'Space Grotesk', system-ui, sans-serif",
-  },
-  dashboard: {
-    minHeight: '100vh',
-    padding: '60px 20px 40px',
-  },
-  container: {
-    maxWidth: '820px',
-    margin: '0 auto',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginBottom: '18px',
-  },
-  eyebrow: {
-    fontSize: '30px',
-    letterSpacing: '0.04em',
-    color: '#5b8a94',
-    marginBottom: '6px',
-  },
-  title: {
-    margin: 0,
-    fontSize: '32px',
-    fontWeight: 700,
-    color: '#e6f4f1',
-    fontFamily: "'JetBrains Mono', monospace",
-  },
-  statusPill: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '8px 16px',
-    borderRadius: '999px',
-    border: '1px solid',
-    fontSize: '15px',
-    fontWeight: 500,
-  },
-  statusDot: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    display: 'inline-block',
-  },
-  metaRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '14px',
-    fontSize: '15px',
-    color: '#7fa0a8',
-    marginBottom: '24px',
-    flexWrap: 'wrap',
-  },
-  metaValue: {
-    color: '#d7ece8',
-    fontFamily: "'JetBrains Mono', monospace",
-    fontWeight: 500,
-  },
-  metaDivider: {
-    width: '1px',
-    height: '12px',
-    background: '#274850',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-    gap: '14px',
-    marginBottom: '28px',
-  },
-  card: {
-    background: 'linear-gradient(180deg, #10262c 0%, #0c1f24 100%)',
-    border: '1px solid #1e3a40',
-    borderRadius: '12px',
-    padding: '16px',
-  },
-  cardTop: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '14px',
-  },
-  cardLabel: {
-    fontSize: '14px',
-    fontFamily: "'JetBrains Mono', monospace",
-    color: '#8fb4ba',
-  },
-  statusTag: {
-    fontSize: '13px',
-    padding: '3px 10px',
-    borderRadius: '999px',
-    border: '1px solid',
-  },
-  gaugeRow: {
-    display: 'flex',
-    alignItems: 'flex-end',
-    gap: '12px',
-  },
-  gaugeTrack: {
-    width: '10px',
-    height: '64px',
-    borderRadius: '6px',
-    background: '#08161a',
-    display: 'flex',
-    alignItems: 'flex-end',
-    overflow: 'hidden',
-    flexShrink: 0,
-  },
-  gaugeFill: {
-    width: '100%',
-    borderRadius: '6px',
-    transformOrigin: 'bottom',
-    animation: 'rise 0.6s ease-out',
-  },
-  readingBlock: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  readingValue: {
-    fontSize: '32px',
-    fontWeight: 700,
-    color: '#eef7f5',
-    fontFamily: "'JetBrains Mono', monospace",
-    lineHeight: 1.1,
-  },
-  readingUnit: {
-    fontSize: '13px',
-    color: '#6f939a',
-    marginTop: '2px',
-  },
-  chartSection: {
-    background: 'linear-gradient(180deg, #0e2229 0%, #0a1a1f 100%)',
-    border: '1px solid #1e3a40',
-    borderRadius: '14px',
-    padding: '22px',
-    marginBottom: '18px',
-  },
-  chartHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '10px',
-    flexWrap: 'wrap',
-    gap: '10px',
-  },
-  chartTitle: {
-    margin: 0,
-    fontSize: '18px',
-    color: '#e6f4f1',
-    fontWeight: 600,
-  },
-  chartSubtitle: {
-    margin: '4px 0 0 0',
-    fontSize: '14px',
-    color: '#6f939a',
-  },
-  trendTag: {
-    fontSize: '15px',
-    fontWeight: 600,
-    fontFamily: "'JetBrains Mono', monospace",
-  },
-  rawToggle: {
-    background: 'transparent',
-    border: '1px solid #274850',
-    color: '#8fb4ba',
-    borderRadius: '8px',
-    padding: '8px 14px',
-    fontSize: '14px',
-    cursor: 'pointer',
-    fontFamily: "'Space Grotesk', system-ui, sans-serif",
-  },
-  jsonPreview: {
-    marginTop: '12px',
-    background: '#08161a',
-    color: '#5eead4',
-    padding: '14px',
-    borderRadius: '10px',
-    overflowX: 'auto',
-    fontSize: '14px',
-    fontFamily: "'JetBrains Mono', monospace",
-    border: '1px solid #1e3a40',
-  },
-};
