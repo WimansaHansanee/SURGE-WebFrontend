@@ -42,6 +42,6 @@ npm run dev
 
 - [Web Backend](https://github.com/WimansaHansanee/SURGE-WebBacktend)
 
-- [Arduino Code and Hardware Wiring]()
+- [Arduino Code and Hardware Wiring](https://github.com/ZentrixMora/SURGE-Arduino)
 
 - [Simulators](https://github.com/ZentrixMora/SURGE-Simulators)
