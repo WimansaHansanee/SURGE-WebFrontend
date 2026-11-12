@@ -23,6 +23,7 @@ git clone https://github.com/WimansaHansanee/SURGE-WebFrontend.git
 - Install dependencies:
 
 ```bash
+cd SURGE-WebFrontend
 npm install
 ```
 
@@ -33,3 +34,14 @@ npm run dev
 ```
 
 > The backend is published [here](https://github.com/WimansaHansanee/SURGE-WebBackend).
+
+
+
+## References
+
+
+- [Web Backend](https://github.com/WimansaHansanee/SURGE-WebBacktend)
+
+- [Arduino Code and Hardware Wiring]()
+
+- [Simulators](https://github.com/ZentrixMora/SURGE-Simulators)
