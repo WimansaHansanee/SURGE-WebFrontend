@@ -1,6 +1,6 @@
 ## SURGE - Real-Time Flood Warning System 🌊
 
-![](assets/banner.png)
+![](assets/surge-banner.jpeg)
 
 
 
